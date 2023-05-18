@@ -73,7 +73,7 @@ for (let post of posts) {
                 </div>
                 <div class="post-meta__data">
                     <div class="post-meta__author">${post.author.name}</div>
-                    <div class="post-meta__time">4 mesi fa</div>
+                    <div class="post-meta__time">${post.created}</div>
                 </div>                    
             </div>
         </div>
@@ -84,7 +84,7 @@ for (let post of posts) {
         <div class="post__footer">
             <div class="likes js-likes">
                 <div class="likes__cta">
-                    <a class="like-button  js-like-button" href="#" data-postid="1">
+                    <a class="like-button  js-like-button" href="#" data-postid=${post.id}>
                         <i class="like-button__icon fas fa-thumbs-up" aria-hidden="true"></i>
                         <span class="like-button__label">Mi Piace</span>
                     </a>
@@ -98,4 +98,62 @@ for (let post of posts) {
     `;
     // AppendChild al container
     container.appendChild(postElement);
+}
+
+// Seleziono la collezione di elementi likeButtons
+const likeButtons = document.getElementsByClassName("like-button");
+
+// Mi fa un iterazione per ogni elemento della collezione likeButtons
+for (let likeButton of likeButtons) {
+    let isClicked = false;
+    // Aggiungo al likeButton corrente un event listenere sul click
+    likeButton.addEventListener("click", function(event) {
+        // https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault?retiredLocale=it 
+        // In questo caso lo usiamo per evitare ogni altra azione di default sul like-button (lo scroll verso l'alto e eventuali <a>)
+        event.preventDefault();
+        if (!isClicked) {
+            // Salvo in una variabile il valore  di data-postid come intero
+            let postId = parseInt(this.getAttribute("data-postid"));
+            // Chiamo la funzione likePost
+            likePost(postId);
+            likeButton.classList.add("like-button--liked");
+            isClicked = true;
+        } else {
+            let postId = parseInt(this.getAttribute("data-postid"));
+            unlikePost(postId);
+            likeButton.classList.remove("like-button--liked");
+            isClicked = false;
+        }
+    });
+}
+
+// Creo un array vuoto per tenere traccia dei post con il like
+let likedPosts = [];
+
+// Funzioni
+
+
+function likePost(postId) {
+    let postIndex = posts.findIndex(post => post.id === postId);
+    if (postIndex > -1) {
+        posts[postIndex].likes++;
+        likedPosts.push(postId);
+        // Display del like
+        let likeCounter = document.getElementById(`like-counter-${postId}`);
+        likeCounter.textContent = posts[postIndex].likes;
+    }
+}
+
+function unlikePost(postId) {
+    let postIndex = posts.findIndex(post => post.id === postId);
+    if (postIndex > -1) {
+        posts[postIndex].likes--;
+        let index = likedPosts.indexOf(postId);
+        if (index > -1) {
+            likedPosts.splice(index, 1);
+        }
+        // Display del like
+        let likeCounter = document.getElementById(`like-counter-${postId}`);
+        likeCounter.textContent = posts[postIndex].likes;
+    }
 }
